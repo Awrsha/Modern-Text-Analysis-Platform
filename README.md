@@ -2,33 +2,11 @@
 
 > **Advanced natural language processing with state-of-the-art AI analysis**
 
-[License](https://img.shields.io/badge/license-MIT-blue)  
-[Python](https://img.shields.io/badge/python-3.9%2B-brightgreen)  
-[Flask](https://img.shields.io/badge/flask-2.3%2B-orange)  
-[Spacy](https://img.shields.io/badge/spacy-3.5%2B-blue)  
-[Transformers](https://img.shields.io/badge/transformers-4.28%2B-red)
-
-## 📑 Table of Contents
-
--   [Overview](https://poe.com/chat/39f5d9cxg86si2c15pu#-overview)
--   [Features](https://poe.com/chat/39f5d9cxg86si2c15pu#-features)
--   [System Architecture](https://poe.com/chat/39f5d9cxg86si2c15pu#-system-architecture)
--   [Installation](https://poe.com/chat/39f5d9cxg86si2c15pu#-installation)
--   [Usage](https://poe.com/chat/39f5d9cxg86si2c15pu#-usage)
--   [API Documentation](https://poe.com/chat/39f5d9cxg86si2c15pu#-api-documentation)
--   [Technology Stack](https://poe.com/chat/39f5d9cxg86si2c15pu#-technology-stack)
--   [Performance Considerations](https://poe.com/chat/39f5d9cxg86si2c15pu#-performance-considerations)
--   [Development Roadmap](https://poe.com/chat/39f5d9cxg86si2c15pu#-development-roadmap)
--   [Contributing](https://poe.com/chat/39f5d9cxg86si2c15pu#-contributing)
--   [License](https://poe.com/chat/39f5d9cxg86si2c15pu#-license)
-
 ## 🔍 Overview
 
 NLP Insight is a sophisticated text analysis platform that combines modern UI design principles with powerful natural language processing capabilities. This application enables users to gain deep insights from text through sentiment analysis, emotion detection, entity recognition, topic modeling, and more.
 
-**Live Demo:** [https://nlp-insight-demo.example.com](https://nlp-insight-demo.example.com/)
-
-[NLP Insight Demo](https://i.imgur.com/placeholder.png)
+[NLP Insight Demo](https://github.com/Awrsha/Modern-Text-Analysis-Platform/blob/master/NLP%20Insight%20-%20Modern%20Text%20Analysis%20Platform/templates/index.html)
 
 ## ✨ Features
 
