@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced NLP Analysis Tool</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- D3.js for advanced visualizations -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- D3 Cloud for word cloud -->
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f0ff',
+                            100: '#e4e3ff',
+                            200: '#d0ceff',
+                            300: '#b2aeff',
+                            400: '#8c89ff',
+                            500: '#5D5CDE', // Primary brand color
+                            600: '#4644c9',
+                            700: '#3835a6',
+                            800: '#2e2c8a',
+                            900: '#292772',
+                            950: '#19184a',
+                        },
+                        secondary: {
+                            50: '#f6f6f7',
+                            100: '#e1e2e5',
+                            200: '#c3c5cb',
+                            300: '#9ea1ab',
+                            400: '#7c808e',
+                            500: '#636775',
+                            600: '#4e515e',
+                            700: '#40424c',
+                            800: '#27282e',
+                            900: '#1C1C1E', // Dark mode background
+                            950: '#121214',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 8px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.3);
+        }
+        
+        /* Smooth transitions for dark mode */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Advanced card styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+        
+        .dark .glass-card {
+            background: rgba(28, 28, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Staggered fade-in for result items */
+        .result-item {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        /* Entity tag styling */
+        .entity-tag {
+            display: inline-block;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 2px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50 dark:bg-secondary-900 text-secondary-800 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <!-- Check dark mode preference -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- Main container -->
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header section -->
+        <header class="text-center mb-12">
+            <div class="flex items-center justify-center mb-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-brain text-white text-xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700 mb-2">NLP Insight</h1>
+            <p class="text-secondary-600 dark:text-secondary-300 text-lg max-w-2xl mx-auto">Advanced natural language processing with state-of-the-art AI analysis</p>
+        </header>
+
+        <!-- Main content -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Input section (2/5 width on large screens) -->
+            <div class="lg:col-span-2">
+                <div class="glass-card rounded-2xl p-6 mb-8 animate-fadeIn">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-keyboard text-primary-500 mr-2"></i>
+                        Text Analysis
+                    </h2>
+                    <div class="mb-4">
+                        <label for="textInput" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Enter Text for Analysis</label>
+                        <textarea id="textInput" rows="10" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-secondary-800 border border-gray-200 dark:border-secondary-700 focus:border-primary-500 dark:focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:focus:ring-primary-500/30 text-base transition duration-200 resize-none shadow-sm" placeholder="Paste or type your text here for analysis..."></textarea>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-secondary-500 dark:text-secondary-400">
+                            <span id="textCount">0</span> characters
+                        </div>
+                        <button id="analyzeBtn" class="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500/50 flex items-center">
+                            <i class="fas fa-chart-bar mr-2"></i>
+                            Analyze Text
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-code-compare text-primary-500 mr-2"></i>
+                        Text Comparison
+                    </h2>
+                    <div class="mb-4">
+                        <label for="textInput1" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">First Text</label>
+                        <textarea id="textInput1" rows="5" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-secondary-800 border border-gray-200 dark:border-secondary-700 focus:border-primary-500 dark:focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:focus:ring-primary-500/30 text-base transition duration-200 resize-none shadow-sm" placeholder="First text sample..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="textInput2" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Second Text</label>
+                        <textarea id="textInput2" rows="5" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-secondary-800 border border-gray-200 dark:border-secondary-700 focus:border-primary-500 dark:focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:focus:ring-primary-500/30 text-base transition duration-200 resize-none shadow-sm" placeholder="Second text sample..."></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button id="compareBtn" class="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500/50 flex items-center">
+                            <i class="fas fa-vial mr-2"></i>
+                            Compare Texts
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results section (3/5 width on large screens) -->
+            <div class="lg:col-span-3">
+                <!-- Loading indicator -->
+                <div id="loadingSection" class="hidden glass-card rounded-2xl p-8 mb-8 flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 mb-4 relative">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-secondary-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-t-primary-500 animate-spin"></div>
+                    </div>
+                    <p class="text-lg font-medium text-secondary-700 dark:text-secondary-300">Analyzing text...</p>
+                    <p class="text-sm text-secondary-500 dark:text-secondary-400 mt-2">This may take a moment depending on text length</p>
+                </div>
+
+                <!-- Single text analysis results -->
+                <div id="singleAnalysisResults" class="hidden">
+                    <!-- Overview section -->
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-6 flex items-center">
+                            <i class="fas fa-gauge-high text-primary-500 mr-2"></i>
+                            Analysis Overview
+                        </h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <!-- Sentiment -->
+                            <div class="p-4 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Sentiment</div>
+                                <div class="flex items-baseline mt-1">
+                                    <div id="sentiment" class="text-lg font-semibold">-</div>
+                                    <div id="sentimentEmoji" class="ml-1 text-lg">-</div>
+                                </div>
+                                <div class="w-full h-1 bg-gray-200 dark:bg-secondary-700 rounded-full mt-2">
+                                    <div id="sentimentBar" class="h-1 rounded-full bg-gradient-to-r from-blue-500 to-primary-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- Emotion -->
+                            <div class="p-4 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Emotion</div>
+                                <div class="flex items-baseline mt-1">
+                                    <div id="emotion" class="text-lg font-semibold">-</div>
+                                    <div id="emotionEmoji" class="ml-1 text-lg">-</div>
+                                </div>
+                                <div class="w-full h-1 bg-gray-200 dark:bg-secondary-700 rounded-full mt-2">
+                                    <div id="emotionBar" class="h-1 rounded-full bg-gradient-to-r from-yellow-500 to-red-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- Complexity -->
+                            <div class="p-4 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Complexity</div>
+                                <div id="complexity" class="text-lg font-semibold mt-1">-</div>
+                                <div class="w-full h-1 bg-gray-200 dark:bg-secondary-700 rounded-full mt-2">
+                                    <div id="complexityBar" class="h-1 rounded-full bg-gradient-to-r from-green-500 to-teal-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- Readability -->
+                            <div class="p-4 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Readability</div>
+                                <div id="readability" class="text-lg font-semibold mt-1">-</div>
+                                <div class="w-full h-1 bg-gray-200 dark:bg-secondary-700 rounded-full mt-2">
+                                    <div id="readabilityBar" class="h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="p-5 bg-white dark:bg-secondary-800 rounded-xl shadow-sm mt-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Text Summary</div>
+                                <div class="text-xs text-secondary-400 dark:text-secondary-500">AI-generated</div>
+                            </div>
+                            <div id="summary" class="text-secondary-700 dark:text-secondary-200 leading-relaxed">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Word cloud and topic analysis -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="glass-card rounded-2xl p-6">
+                            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-cloud text-primary-500 mr-2"></i>
+                                Word Cloud
+                            </h2>
+                            <div id="wordCloudContainer" class="bg-white dark:bg-secondary-800 rounded-xl p-4 flex items-center justify-center h-64 shadow-sm">
+                                <svg id="wordCloudSvg" width="100%" height="100%"></svg>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-2xl p-6">
+                            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-layer-group text-primary-500 mr-2"></i>
+                                Topic Analysis
+                            </h2>
+                            <div id="topicContainer" class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-64 shadow-sm overflow-auto">
+                                <canvas id="topicChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entities and n-grams -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="glass-card rounded-2xl p-6">
+                            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-sitemap text-primary-500 mr-2"></i>
+                                Named Entities
+                            </h2>
+                            <div id="entityContainer" class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-64 shadow-sm overflow-auto">
+                                <div id="entityTags" class="flex flex-wrap"></div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-2xl p-6">
+                            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-language text-primary-500 mr-2"></i>
+                                Phrase Analysis
+                            </h2>
+                            <div class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-64 shadow-sm overflow-auto">
+                                <div class="mb-4">
+                                    <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Top Bigrams (2-word phrases)</h3>
+                                    <div id="bigramContainer" class="text-sm"></div>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Top Trigrams (3-word phrases)</h3>
+                                    <div id="trigramContainer" class="text-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Word frequency analysis -->
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-column text-primary-500 mr-2"></i>
+                            Word Frequency
+                        </h2>
+                        <div class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-72 shadow-sm">
+                            <canvas id="wordFreqChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text comparison results -->
+                <div id="comparisonResults" class="hidden">
+                    <!-- Comparison overview -->
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-6 flex items-center">
+                            <i class="fas fa-scale-balanced text-primary-500 mr-2"></i>
+                            Comparison Overview
+                        </h2>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="p-5 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 1</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-xs text-secondary-500 dark:text-secondary-400">Sentiment</div>
+                                        <div class="flex items-baseline mt-1">
+                                            <div id="sentiment1" class="text-base font-semibold">-</div>
+                                            <div id="sentimentEmoji1" class="ml-1 text-base">-</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-secondary-500 dark:text-secondary-400">Emotion</div>
+                                        <div class="flex items-baseline mt-1">
+                                            <div id="emotion1" class="text-base font-semibold">-</div>
+                                            <div id="emotionEmoji1" class="ml-1 text-base">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-5 bg-white dark:bg-secondary-800 rounded-xl shadow-sm">
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 2</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-xs text-secondary-500 dark:text-secondary-400">Sentiment</div>
+                                        <div class="flex items-baseline mt-1">
+                                            <div id="sentiment2" class="text-base font-semibold">-</div>
+                                            <div id="sentimentEmoji2" class="ml-1 text-base">-</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-secondary-500 dark:text-secondary-400">Emotion</div>
+                                        <div class="flex items-baseline mt-1">
+                                            <div id="emotion2" class="text-base font-semibold">-</div>
+                                            <div id="emotionEmoji2" class="ml-1 text-base">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm">
+                            <canvas id="comparisonChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Entities comparison -->
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-building text-primary-500 mr-2"></i>
+                            Named Entities Comparison
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 1 Entities</div>
+                                <div id="entityTags1" class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-48 shadow-sm overflow-auto flex flex-wrap"></div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 2 Entities</div>
+                                <div id="entityTags2" class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-48 shadow-sm overflow-auto flex flex-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Word frequency comparison -->
+                    <div class="glass-card rounded-2xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-bar text-primary-500 mr-2"></i>
+                            Word Frequency Comparison
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 1 Word Frequency</div>
+                                <div class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-64 shadow-sm">
+                                    <canvas id="wordFreqChart1"></canvas>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Text 2 Word Frequency</div>
+                                <div class="bg-white dark:bg-secondary-800 rounded-xl p-4 h-64 shadow-sm">
+                                    <canvas id="wordFreqChart2"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Color mapping for entity types
+        const entityColors = {
+            'PERSON': { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-300', icon: 'fa-user' },
+            'ORGANIZATION': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', icon: 'fa-building' },
+            'LOCATION': { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', icon: 'fa-location-dot' },
+            'DATE': { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300', icon: 'fa-calendar' },
+            'TIME': { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300', icon: 'fa-clock' },
+            'MONEY': { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', icon: 'fa-money-bill' },
+            'PERCENT': { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', icon: 'fa-percent' },
+            'EVENT': { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-800 dark:text-pink-300', icon: 'fa-calendar-day' },
+            'PRODUCT': { bg: 'bg-teal-100 dark:bg-teal-900/30', text: 'text-teal-800 dark:text-teal-300', icon: 'fa-shopping-bag' },
+            'WORK_OF_ART': { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-800 dark:text-indigo-300', icon: 'fa-palette' },
+            'LAW': { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-300', icon: 'fa-gavel' },
+            'LANGUAGE': { bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-800 dark:text-cyan-300', icon: 'fa-language' }
+        };
+        
+        // Default styling for unknown entity types
+        const defaultEntityColor = { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-800 dark:text-gray-300', icon: 'fa-tag' };
+        
+        // Sentiment emoji mapping
+        const sentimentEmojis = {
+            'Positive': '😃',
+            'Negative': '😞',
+            'Neutral': '😐',
+            'Mixed': '🤔'
+        };
+        
+        // Emotion emoji mapping
+        const emotionEmojis = {
+            'joy': '😄',
+            'sadness': '😢',
+            'anger': '😠',
+            'fear': '😨',
+            'surprise': '😲',
+            'disgust': '🤢',
+            'neutral': '😐',
+            'love': '❤️',
+            'admiration': '🥰',
+            'approval': '👍',
+            'caring': '🤗',
+            'excitement': '🤩',
+            'gratitude': '🙏',
+            'pride': '😌',
+            'optimism': '🙂',
+            'relief': '😌',
+            'realization': '💡',
+            'confusion': '😕',
+            'curiosity': '🧐',
+            'disappointment': '😔',
+            'disapproval': '👎',
+            'embarrassment': '😳',
+            'grief': '😥',
+            'nervousness': '😰',
+            'remorse': '😓'
+        };
+        
+        // Global charts object to keep track of charts for destruction before redrawing
+        const charts = {
+            wordFreq: null,
+            topic: null,
+            comparison: null,
+            wordFreq1: null,
+            wordFreq2: null
+        };
+        
+        // DOM elements
+        const textInput = document.getElementById('textInput');
+        const textInput1 = document.getElementById('textInput1');
+        const textInput2 = document.getElementById('textInput2');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const compareBtn = document.getElementById('compareBtn');
+        const textCount = document.getElementById('textCount');
+        const loadingSection = document.getElementById('loadingSection');
+        const singleAnalysisResults = document.getElementById('singleAnalysisResults');
+        const comparisonResults = document.getElementById('comparisonResults');
+        
+        // Character counter for main text input
+        textInput.addEventListener('input', () => {
+            textCount.textContent = textInput.value.length;
+        });
+        
+        // Initialize word cloud
+        function initWordCloud(words) {
+            const width = document.getElementById('wordCloudContainer').clientWidth;
+            const height = document.getElementById('wordCloudContainer').clientHeight;
+            
+            // Clear previous word cloud
+            d3.select("#wordCloudSvg").selectAll("*").remove();
+            
+            const svg = d3.select("#wordCloudSvg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${width/2},${height/2})`);
+            
+            // Create word cloud layout
+            d3.layout.cloud()
+                .size([width, height])
+                .words(words.map(d => ({
+                    text: d[0],
+                    size: 10 + (d[1] * 15) // Scale size appropriately
+                })))
+                .padding(5)
+                .rotate(() => ~~(Math.random() * 2) * 90)
+                .fontSize(d => d.size)
+                .on("end", draw)
+                .start();
+            
+            // Draw the word cloud
+            function draw(words) {
+                // Check dark mode for text color
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const textColor = isDarkMode ? "#e5e7eb" : "#1f2937";
+                
+                svg.selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .style("font-size", d => `${d.size}px`)
+                    .style("font-family", "Inter, sans-serif")
+                    .style("fill", (d, i) => {
+                        // Generate a gradient of colors based on size
+                        const hue = 230 + (i % 3) * 20; // Blue-purple range
+                        const lightness = 50 + (d.size / 40) * 10;
+                        return isDarkMode ? 
+                            `hsl(${hue}, 70%, ${lightness}%)` : 
+                            `hsl(${hue}, 70%, ${Math.max(30, lightness - 20)}%)`;
+                    })
+                    .attr("text-anchor", "middle")
+                    .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
+                    .text(d => d.text)
+                    .transition()
+                    .duration(500)
+                    .style("opacity", 1);
+            }
+        }
+        
+        // Create bar chart for word frequencies
+        function createWordFreqChart(containerId, words, title = 'Word Frequency') {
+            const ctx = document.getElementById(containerId).getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (charts[containerId]) {
+                charts[containerId].destroy();
+            }
+            
+            // Prepare data
+            const labels = words.map(w => w[0]);
+            const data = words.map(w => w[1]);
+            
+            // Get colors based on theme
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#e5e7eb' : '#4b5563';
+            
+            // Create chart
+            charts[containerId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequency',
+                        data: data,
+                        backgroundColor: isDarkMode ? 'rgba(93, 92, 222, 0.6)' : 'rgba(93, 92, 222, 0.8)',
+                        borderColor: '#5D5CDE',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDarkMode ? '#e5e7eb' : '#1f2937',
+                            bodyColor: isDarkMode ? '#d1d5db' : '#4b5563',
+                            borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.8)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxPadding: 6
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 11
+                                },
+                                autoSkip: true,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+        
+        // Create topic chart
+        function createTopicChart(topics) {
+            const ctx = document.getElementById('topicChart').getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (charts.topic) {
+                charts.topic.destroy();
+            }
+            
+            // Prepare data
+            const labels = topics.map(t => t.label || t.topic);
+            const data = topics.map(t => t.score || t.count);
+            
+            // Get colors based on theme
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#e5e7eb' : '#4b5563';
+            
+            // Create chart
+            charts.topic = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Topic Relevance',
+                        data: data,
+                        backgroundColor: isDarkMode ? 'rgba(93, 92, 222, 0.3)' : 'rgba(93, 92, 222, 0.5)',
+                        borderColor: '#5D5CDE',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#5D5CDE',
+                        pointBorderColor: isDarkMode ? '#1C1C1E' : '#ffffff',
+                        pointHoverBackgroundColor: '#ffffff',
+                        pointHoverBorderColor: '#5D5CDE',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: gridColor
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            pointLabels: {
+                                color: textColor,
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 11
+                                }
+                            },
+                            ticks: {
+                                color: textColor,
+                                backdropColor: isDarkMode ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 10
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDarkMode ? '#e5e7eb' : '#1f2937',
+                            bodyColor: isDarkMode ? '#d1d5db' : '#4b5563',
+                            borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.8)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxPadding: 6
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+        
+        // Create comparison chart
+        function createComparisonChart(data1, data2) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (charts.comparison) {
+                charts.comparison.destroy();
+            }
+            
+            // Get colors based on theme
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDarkMode ? '#e5e7eb' : '#4b5563';
+            
+            // Create chart
+            charts.comparison = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Complexity', 'Positivity', 'Emotionality', 'Formality', 'Specificity', 'Subjectivity'],
+                    datasets: [
+                        {
+                            label: 'Text 1',
+                            data: data1,
+                            backgroundColor: isDarkMode ? 'rgba(93, 92, 222, 0.3)' : 'rgba(93, 92, 222, 0.5)',
+                            borderColor: '#5D5CDE',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#5D5CDE',
+                            pointBorderColor: isDarkMode ? '#1C1C1E' : '#ffffff',
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: '#5D5CDE'
+                        },
+                        {
+                            label: 'Text 2',
+                            data: data2,
+                            backgroundColor: isDarkMode ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.5)',
+                            borderColor: '#F97316',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#F97316',
+                            pointBorderColor: isDarkMode ? '#1C1C1E' : '#ffffff',
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: '#F97316'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 1,
+                            angleLines: {
+                                color: gridColor
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            pointLabels: {
+                                color: textColor,
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                color: textColor,
+                                backdropColor: isDarkMode ? 'rgba(28, 28, 30, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 10
+                                },
+                                stepSize: 0.2
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: textColor,
+                                font: {
+                                    family: 'Inter, sans-serif',
+                                    size: 12
+                                },
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                            titleColor: isDarkMode ? '#e5e7eb' : '#1f2937',
+                            bodyColor: isDarkMode ? '#d1d5db' : '#4b5563',
+                            borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.8)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxPadding: 6
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+        
+        // Display entity tags
+        function displayEntityTags(entities, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (entities && entities.length > 0) {
+                entities.forEach((entity, index) => {
+                    setTimeout(() => {
+                        const color = entityColors[entity.label] || defaultEntityColor;
+                        
+                        const tag = document.createElement('div');
+                        tag.className = `entity-tag ${color.bg} ${color.text} mb-2 mr-2 opacity-0`;
+                        tag.innerHTML = `<i class="fas ${color.icon} mr-1"></i> ${entity.entity} <span class="opacity-70 text-xs">${entity.label}</span>`;
+                        
+                        container.appendChild(tag);
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            tag.classList.add('fade-in');
+                        }, 10);
+                    }, index * 50); // Stagger animation
+                });
+            } else {
+                container.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">No entities detected</div>';
+            }
+        }
+        
+        // Display n-grams
+        function displayNgrams(ngrams, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (ngrams && ngrams.length > 0) {
+                ngrams.forEach((ngram, index) => {
+                    setTimeout(() => {
+                        const item = document.createElement('div');
+                        item.className = 'py-1 px-2 mb-1 rounded bg-gray-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-200 inline-block mr-2 opacity-0';
+                        item.textContent = ngram;
+                        
+                        container.appendChild(item);
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            item.classList.add('fade-in');
+                        }, 10);
+                    }, index * 100); // Stagger animation
+                });
+            } else {
+                container.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">No significant phrases detected</div>';
+            }
+        }
+        
+        // Update progress bar
+        function updateBar(elementId, value, maxValue = 1) {
+            const bar = document.getElementById(elementId);
+            const percentage = (value / maxValue) * 100;
+            bar.style.width = `${percentage}%`;
+        }
+        
+        // Handler for single text analysis
+        async function analyzeSingleText() {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('Please enter some text to analyze.');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                loadingSection.classList.remove('hidden');
+                singleAnalysisResults.classList.add('hidden');
+                comparisonResults.classList.add('hidden');
+                
+                // Register handler for Claude's response
+                const handlerId = `analysis-${Date.now()}`;
+                
+                window.Poe.registerHandler(handlerId, (result) => {
+                    // Get the first response
+                    const msg = result.responses[0];
+                    
+                    if (msg.status === "error") {
+                        loadingSection.classList.add('hidden');
+                        alert(`Error: ${msg.statusText || 'Failed to analyze text'}`);
+                    } else if (msg.status === "complete") {
+                        // Handle the completed analysis
+                        try {
+                            // Parse the JSON response
+                            const startJsonIndex = msg.content.indexOf('{');
+                            const endJsonIndex = msg.content.lastIndexOf('}') + 1;
+                            const jsonStr = msg.content.substring(startJsonIndex, endJsonIndex);
+                            const analysis = JSON.parse(jsonStr);
+                            
+                            // Process analysis results
+                            displayAnalysisResults(analysis);
+                            
+                            // Hide loading, show results
+                            loadingSection.classList.add('hidden');
+                            singleAnalysisResults.classList.remove('hidden');
+                            
+                            // Animate result items
+                            const resultItems = document.querySelectorAll('.result-item');
+                            resultItems.forEach((item, index) => {
+                                setTimeout(() => {
+                                    item.classList.add('fade-in');
+                                }, index * 100);
+                            });
+                        } catch (err) {
+                            console.error('Error parsing analysis result:', err);
+                            console.log('Raw response:', msg.content);
+                            loadingSection.classList.add('hidden');
+                            alert('Error processing analysis results. Please try again.');
+                        }
+                    }
+                });
+                
+                // Send text to Claude for analysis
+                const prompt = `
+                @Claude-3.7-Sonnet Analyze the following text and return ONLY a JSON object with these elements:
+                
+                - sentiment: overall sentiment (Positive, Negative, Neutral, or Mixed)
+                - sentimentScore: number from 0 to 1 representing strength of sentiment
+                - emotion: primary emotion detected
+                - emotionScore: confidence score for emotion (0-1)
+                - summary: concise 2-3 sentence summary
+                - entities: array of {entity, label} objects for named entities
+                - complexity: reading complexity score (0-1)
+                - readability: approximate grade level (e.g. "College", "High School")
+                - readabilityScore: numerical representation (0-1) 
+                - topics: array of {label, score} for main topics
+                - wordFreq: array of [word, count] pairs for most frequent words (top 10)
+                - bigrams: array of top 5 two-word phrases
+                - trigrams: array of top 5 three-word phrases
+                
+                Respond ONLY with the JSON object, no other text or explanation.
+                
+                Text to analyze:
+                ${text}
+                `;
+                
+                await window.Poe.sendUserMessage(prompt, {
+                    handler: handlerId,
+                    stream: false,
+                    openChat: false
+                });
+                
+            } catch (err) {
+                loadingSection.classList.add('hidden');
+                console.error('Error during analysis:', err);
+                alert(`Error: ${err.message || 'Failed to analyze text'}`);
+            }
+        }
+        
+        // Function to display analysis results
+        function displayAnalysisResults(analysis) {
+            // Basic sentiment/emotion metrics
+            document.getElementById('sentiment').textContent = analysis.sentiment || '-';
+            document.getElementById('sentimentEmoji').textContent = sentimentEmojis[analysis.sentiment] || '';
+            document.getElementById('emotion').textContent = analysis.emotion || '-';
+            document.getElementById('emotionEmoji').textContent = emotionEmojis[analysis.emotion] || '';
+            document.getElementById('complexity').textContent = analysis.complexity ? 
+                (analysis.complexity > 0.7 ? 'Complex' : analysis.complexity > 0.4 ? 'Moderate' : 'Simple') : '-';
+            document.getElementById('readability').textContent = analysis.readability || '-';
+            
+            // Update progress bars
+            updateBar('sentimentBar', analysis.sentimentScore || 0);
+            updateBar('emotionBar', analysis.emotionScore || 0);
+            updateBar('complexityBar', analysis.complexity || 0);
+            updateBar('readabilityBar', analysis.readabilityScore || 0);
+            
+            // Summary
+            document.getElementById('summary').textContent = analysis.summary || 'No summary available';
+            
+            // Word cloud
+            if (analysis.wordFreq && analysis.wordFreq.length > 0) {
+                initWordCloud(analysis.wordFreq);
+            } else {
+                document.getElementById('wordCloudSvg').innerHTML = '<text x="50%" y="50%" text-anchor="middle" class="text-gray-500 dark:text-gray-400">No data for word cloud</text>';
+            }
+            
+            // Topic chart
+            if (analysis.topics && analysis.topics.length > 0) {
+                createTopicChart(analysis.topics);
+            }
+            
+            // Word frequency chart
+            if (analysis.wordFreq && analysis.wordFreq.length > 0) {
+                createWordFreqChart('wordFreqChart', analysis.wordFreq);
+            }
+            
+            // Entities
+            displayEntityTags(analysis.entities || [], 'entityTags');
+            
+            // N-grams
+            displayNgrams(analysis.bigrams || [], 'bigramContainer');
+            displayNgrams(analysis.trigrams || [], 'trigramContainer');
+        }
+        
+        // Handler for text comparison
+        async function compareTexts() {
+            const text1 = textInput1.value.trim();
+            const text2 = textInput2.value.trim();
+            
+            if (!text1 || !text2) {
+                alert('Please enter both texts for comparison.');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                loadingSection.classList.remove('hidden');
+                singleAnalysisResults.classList.add('hidden');
+                comparisonResults.classList.add('hidden');
+                
+                // Register handler for Claude's response
+                const handlerId = `comparison-${Date.now()}`;
+                
+                window.Poe.registerHandler(handlerId, (result) => {
+                    // Get the first response
+                    const msg = result.responses[0];
+                    
+                    if (msg.status === "error") {
+                        loadingSection.classList.add('hidden');
+                        alert(`Error: ${msg.statusText || 'Failed to compare texts'}`);
+                    } else if (msg.status === "complete") {
+                        // Handle the completed comparison
+                        try {
+                            // Parse the JSON response
+                            const startJsonIndex = msg.content.indexOf('{');
+                            const endJsonIndex = msg.content.lastIndexOf('}') + 1;
+                            const jsonStr = msg.content.substring(startJsonIndex, endJsonIndex);
+                            const comparison = JSON.parse(jsonStr);
+                            
+                            // Process comparison results
+                            displayComparisonResults(comparison);
+                            
+                            // Hide loading, show results
+                            loadingSection.classList.add('hidden');
+                            comparisonResults.classList.remove('hidden');
+                            
+                        } catch (err) {
+                            console.error('Error parsing comparison result:', err);
+                            console.log('Raw response:', msg.content);
+                            loadingSection.classList.add('hidden');
+                            alert('Error processing comparison results. Please try again.');
+                        }
+                    }
+                });
+                
+                // Send texts to Claude for comparison
+                const prompt = `
+                @Claude-3.7-Sonnet Compare these two texts and return ONLY a JSON object with:
+                
+                For each text (text1 and text2):
+                - sentiment: overall sentiment (Positive, Negative, Neutral, or Mixed)
+                - sentimentScore: strength of sentiment (0-1)
+                - emotion: primary emotion detected
+                - emotionScore: confidence for emotion (0-1)
+                - entities: array of {entity, label} for named entities
+                - wordFreq: array of [word, count] pairs for most frequent words (top 10)
+                - metrics: array of 6 values between 0-1 for [complexity, positivity, emotionality, formality, specificity, subjectivity]
+                
+                Respond ONLY with the JSON object, no other text.
+                
+                TEXT 1:
+                ${text1}
+                
+                TEXT 2:
+                ${text2}
+                `;
+                
+                await window.Poe.sendUserMessage(prompt, {
+                    handler: handlerId,
+                    stream: false,
+                    openChat: false
+                });
+                
+            } catch (err) {
+                loadingSection.classList.add('hidden');
+                console.error('Error during comparison:', err);
+                alert(`Error: ${err.message || 'Failed to compare texts'}`);
+            }
+        }
+        
+        // Function to display comparison results
+        function displayComparisonResults(comparison) {
+            // Text 1 sentiment/emotion
+            document.getElementById('sentiment1').textContent = comparison.text1.sentiment || '-';
+            document.getElementById('sentimentEmoji1').textContent = sentimentEmojis[comparison.text1.sentiment] || '';
+            document.getElementById('emotion1').textContent = comparison.text1.emotion || '-';
+            document.getElementById('emotionEmoji1').textContent = emotionEmojis[comparison.text1.emotion] || '';
+            
+            // Text 2 sentiment/emotion
+            document.getElementById('sentiment2').textContent = comparison.text2.sentiment || '-';
+            document.getElementById('sentimentEmoji2').textContent = sentimentEmojis[comparison.text2.sentiment] || '';
+            document.getElementById('emotion2').textContent = comparison.text2.emotion || '-';
+            document.getElementById('emotionEmoji2').textContent = emotionEmojis[comparison.text2.emotion] || '';
+            
+            // Entity tags
+            displayEntityTags(comparison.text1.entities || [], 'entityTags1');
+            displayEntityTags(comparison.text2.entities || [], 'entityTags2');
+            
+            // Word frequency charts
+            if (comparison.text1.wordFreq && comparison.text1.wordFreq.length > 0) {
+                createWordFreqChart('wordFreqChart1', comparison.text1.wordFreq);
+            }
+            
+            if (comparison.text2.wordFreq && comparison.text2.wordFreq.length > 0) {
+                createWordFreqChart('wordFreqChart2', comparison.text2.wordFreq);
+            }
+            
+            // Create comparison radar chart
+            if (comparison.text1.metrics && comparison.text2.metrics) {
+                createComparisonChart(comparison.text1.metrics, comparison.text2.metrics);
+            }
+        }
+        
+        // Event listeners
+        analyzeBtn.addEventListener('click', analyzeSingleText);
+        compareBtn.addEventListener('click', compareTexts);
+        
+        // Handle window resize for visualizations
+        window.addEventListener('resize', () => {
+            // Redraw word cloud if it exists
+            const wordFreqData = charts.wordFreq?.data?.datasets?.[0]?.data;
+            const wordFreqLabels = charts.wordFreq?.data?.labels;
+            
+            if (wordFreqData && wordFreqLabels) {
+                const words = wordFreqLabels.map((label, i) => [label, wordFreqData[i]]);
+                if (words.length > 0) {
+                    initWordCloud(words);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
